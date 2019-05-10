@@ -1,12 +1,8 @@
 html,
 body {
   width: 100%;
-  height: 100vh;
+  height: 100%;
   margin: 0;
-}
-
-.video-box-wrapper {
-  position: relative;
 }
 
 .video-box {
@@ -22,11 +18,6 @@ body {
 .take-photo-btn {
   display: none;
   position: absolute;
-  top: 50%;
-  /* top: 0;
-  bottom: 0; */
-  /* right: 50px; */
-  margin: auto;
   padding: 0;
   width: 50px;
   height: 50px;
@@ -35,6 +26,18 @@ body {
   border: 2px solid #fff;
   outline: none;
   z-index: 2;
+}
+
+.take-photo-btn--portrait {
+  top: 80%;
+  left: 0;
+  right: 0;
+  margin: auto;
+}
+
+.take-photo-btn--landscape {
+  right: 10%;
+  top: calc(50% - 25px);
 }
 
 .take-photo-btn--shown {

@@ -1,6 +1,6 @@
 (function() {
   var videoBoxEvent = null;
-  var isLandscape = window.innerHeight < window.innerWidth;
+  var isLandscape = () => window.innerHeight < window.innerWidth;
   var constraints = {
     audio: false,
     video: {
@@ -8,8 +8,8 @@
       // facingMode: "user",
       // rear camera
       facingMode: { exact: "environment" },
-      width: { ideal: 1280 },
-      height: { ideal: 720 }
+      width: { ideal: 1920 },
+      height: { ideal: 1080 }
     }
   };
 
@@ -33,7 +33,6 @@
   var landscapeBarcodeXMultiplier = 0.12;
   var landscapeBarcodeYMultiplier = 0.03;
 
-  var videoBoxWrapper = document.getElementById("video-box-wrapper");
   var videoBox = document.getElementById("video-box");
   var takePhotoButton = document.getElementById("take-photo-btn");
 
@@ -44,7 +43,6 @@
     ctx.lineWidth = 1;
     ctx.strokeStyle = "#fff";
 
-    isLandscape = window.innerHeight < window.innerWidth;
     var width;
     var height;
     var x;
@@ -52,7 +50,7 @@
 
     switch (type) {
       case "photo": {
-        if (isLandscape) {
+        if (isLandscape()) {
           // landscape
           var width = videoRealWidth * photoWMultiplier;
           var height = videoRealHeight * photoHMultiplier;
@@ -68,7 +66,7 @@
         break;
       }
       case "barcode": {
-        if (isLandscape) {
+        if (isLandscape()) {
           // landscape
           var width = videoRealWidth * barcodeWMultiplier;
           var height = videoRealHeight * barcodeHMultiplier;
@@ -114,8 +112,8 @@
     photoOverlay = overlays.photoOverlay;
     barcodeOverlay = overlays.barcodeOverlay;
 
-    videoBoxWrapper.appendChild(photoOverlay);
-    videoBoxWrapper.appendChild(barcodeOverlay);
+    document.body.appendChild(photoOverlay);
+    document.body.appendChild(barcodeOverlay);
 
     addOverlay("photo", photoOverlay, width, height);
     addOverlay("barcode", barcodeOverlay, width, height);
@@ -161,7 +159,7 @@
     var photo;
     var barcode;
 
-    if (isLandscape) {
+    if (isLandscape()) {
       // landscape
       photo = crop(
         photoWMultiplier,
@@ -197,27 +195,38 @@
       "<img src='" + photo + "' />" + "<br />" + "<img src='" + barcode + "' />"
     );
 
-    // var instance = axios.create();
-    //
-    // instance
-    //   .post("https://s3-bucket-proxy.mobidevdemo.com/upload", {
-    //     photo:"ddfd",
-    //     name: "test_" + Date.now()
-    //   })
-    //   .then(r => r)
-    //   .catch(e => console.error("UPLOAD ERROR => ", e));
+    var url = "https://s3-bucket-proxy.mobidevdemo.com/upload";
+    var postPhoto = axios.post(url, {
+      photo: photo,
+      name: "passport_photo_" + Date.now()
+    });
+    var postBarcode = axios.post(url, {
+      photo: barcode,
+      name: "passport_barcode_" + Date.now()
+    });
+
+    Promise.all([postPhoto, postBarcode])
+      .then(r => r)
+      .catch(e => console.error("PHOTO UPLOAD ERROR => ", e));
   };
 
   var play = function() {
+    if (isLandscape()) {
+      takePhotoButton.classList.remove("take-photo-btn--portrait");
+      takePhotoButton.classList.add("take-photo-btn--landscape");
+    } else {
+      takePhotoButton.classList.remove("take-photo-btn--landscape");
+      takePhotoButton.classList.add("take-photo-btn--portrait");
+    }
+
     videoBox.play();
-    videoBox.width = videoBoxWrapper.clientWidth;
+    videoBox.width = document.body.clientWidth;
     appendOverlay();
   };
 
   setTimeout(function() {
-    videoBoxWrapper.style.height = videoBox.clientHeight + "px";
     takePhotoButton.classList.add("take-photo-btn--shown");
-  }, 1000);
+  }, 3000);
 
   if (navigator.mediaDevices) {
     navigator.mediaDevices
